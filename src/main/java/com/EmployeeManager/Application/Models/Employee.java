@@ -4,10 +4,12 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
+
 @Getter
 @Setter
 @Entity
-public class Employee {
+public class Employee implements Serializable {
     public Employee(){}
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
