@@ -1,5 +1,7 @@
 package com.EmployeeManager.Application.Services;
+import com.EmployeeManager.Application.Exceptions.UserNotFoundException;
 import com.EmployeeManager.Application.Models.Employee;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import com.EmployeeManager.Application.Repositories.employeeRepo;
@@ -28,9 +30,14 @@ public class EmployeeService {
     //Update Employee records
     public Employee updateEmployee(Employee employee){ return employeeRepo.save(employee);}
     //Delete employee records
-    public Employee findEmployeeById(Long Id) {
+    @Transactional
+    public Employee findEmployeeById(Long id)
+    {
         return employeeRepo.findEmployeeById(id)
                 .orElseThrow(() -> new UserNotFoundException("User by id" + id + "was not found"));
-
+    }
+    //Delete employee records
+    public void deleteEmployee(Long id){
+        employeeRepo.deleteEmployeeById(id);
     }
 }
