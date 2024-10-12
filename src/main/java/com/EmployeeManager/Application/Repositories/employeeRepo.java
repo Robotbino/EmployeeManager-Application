@@ -9,5 +9,6 @@ import java.util.Optional;
 @Repository
 public interface employeeRepo extends JpaRepository<Employee, Long>{
     void deleteEmployeeById(Long id);
+
     Optional<Employee> findEmployeeById(Long id);
 }

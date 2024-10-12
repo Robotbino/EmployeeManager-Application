@@ -7,7 +7,6 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
@@ -24,7 +23,6 @@ public class JwtService {
     {
         return generateToken(new HashMap<>(), userDetails);
     }
-
     public String generateToken(
             Map<String, Object> extraClaims,
             UserDetails userDetail
@@ -39,7 +37,6 @@ public class JwtService {
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
-
     public boolean isTokenValid(String token, UserDetails userDetails)
     {
         final String username = extractUsername(token);
@@ -66,12 +63,6 @@ public class JwtService {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-
-    //    private SecretKey getSignInKey()
-//    {
-//        byte[] keyBytes = Decoders.BASE64.decode(My_SECRET_KEY);
-//        return Keys.hmacShaKeyFor(keyBytes);
-//    }
     private Claims extractAllClaims(String token)
     {
         //A sign in key is a secret that is used to digitally signed jwt

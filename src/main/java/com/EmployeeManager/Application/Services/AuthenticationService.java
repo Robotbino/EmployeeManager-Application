@@ -32,12 +32,13 @@ public class AuthenticationService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.USER)
                 .build();
-        var savedUser = repository.save(authUser);
+//        var savedUser = repository.save(authUser);
         var jwtToken = jwtService.generateToken(authUser);
         return AuthenticationResponse.builder()
                 .token(jwtToken)
                 .build();
     }
+
     public AuthenticationResponse authenticate(AuthenticationRequest request){
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
