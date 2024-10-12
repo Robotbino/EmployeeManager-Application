@@ -3,11 +3,14 @@ package com.EmployeeManager.Application.Services;
 import com.EmployeeManager.Application.Models.AuthUser;
 import com.EmployeeManager.Application.Models.Role;
 import com.EmployeeManager.Application.Repositories.AuthRepository;
+import com.EmployeeManager.Application.authentication.AuthenticationRequest;
 import com.EmployeeManager.Application.authentication.AuthenticationResponse;
 import com.EmployeeManager.Application.authentication.RegisterRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -31,7 +34,24 @@ public class AuthenticationService {
                 .build();
         var savedUser = repository.save(authUser);
         var jwtToken = jwtService.generateToken(authUser);
+        return AuthenticationResponse.builder()
+                .token(jwtToken)
+                .build();
     }
-
+    public AuthenticationResponse authenticate(AuthenticationRequest request){
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.getEmail(),
+                        request.getPassword()
+                )
+        );
+        //If we get to this point it means that the username and password are correct
+        var user = repository.findByEmail(request.getEmail())
+                .orElseThrow(()-> new UsernameNotFoundException("Unknown user"));
+        var jwtToken = jwtService.generateToken(user);
+        return AuthenticationResponse.builder()
+                .token(jwtToken)
+                .build();
+    }
 
 }
