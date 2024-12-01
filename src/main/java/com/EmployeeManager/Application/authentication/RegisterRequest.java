@@ -18,4 +18,12 @@ public class RegisterRequest {
     public String getfirstName() {
         return null;
     }
+
+    public String getLastName() {
+        return this.lastName=lastName;
+    }
+    public String getEmail() {
+        return this.email=email;
+    }
+
 }

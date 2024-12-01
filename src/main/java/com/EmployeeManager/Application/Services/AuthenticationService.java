@@ -18,22 +18,23 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AuthenticationService {
 
-    private final AuthRepository repository;
-    private final PasswordEncoder passwordEncoder;
-    private final JwtService jwtService;
-    private final AuthenticationManager authenticationManager;
+    private AuthRepository repository;
+    private PasswordEncoder passwordEncoder;
+    private JwtService jwtService;
+    private AuthenticationManager authenticationManager;
+
     //This is where you will find the business logic of the authentication controllers
     public AuthenticationResponse register(RegisterRequest request)
     {
-        var authUser = AuthUser.builder()
+        var user = AuthUser.builder()
                 .firstName(request.getfirstName())
                 .lastName(request.getLastName())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.USER)
                 .build();
-//        var savedUser = repository.save(authUser);
-        var jwtToken = jwtService.generateToken(authUser);
+        //var savedUser = repository.save(user);
+        var jwtToken = jwtService.generateToken(user);
         return AuthenticationResponse.builder()
                 .token(jwtToken)
                 .build();
