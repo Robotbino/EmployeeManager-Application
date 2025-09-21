@@ -31,6 +31,7 @@ public class AuthUser implements UserDetails {
     private String firstName;
     private String lastName;
     private String email;
+    private boolean isEnabled = true;
     private  String password;
     @Enumerated(EnumType.STRING)
     //To tell string that the
@@ -68,9 +69,8 @@ public class AuthUser implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return UserDetails.super.isEnabled();
+        return true;
     }
-
 
 
 }

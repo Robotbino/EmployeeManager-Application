@@ -19,8 +19,9 @@ import static org.springframework.http.HttpMethod.POST;
 @RequiredArgsConstructor
 public class SecurityConfiguration {
 
-    private JwtAuthenticationFilter jwtAuthFilter;
-    private AuthenticationProvider authenticationProvider;
+    private final JwtAuthenticationFilter jwtAuthFilter;
+    private final AuthenticationProvider authenticationProvider;
+
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
