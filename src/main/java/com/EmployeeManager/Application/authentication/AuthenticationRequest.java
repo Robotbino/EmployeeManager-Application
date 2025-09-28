@@ -2,7 +2,9 @@ package com.EmployeeManager.Application.authentication;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
 
+@Getter
 @Data
 @Builder
 public class AuthenticationRequest {
@@ -16,13 +18,5 @@ public class AuthenticationRequest {
     public void setPassword()
     {
         this.password=password;
-    }
-    public String getEmail()
-    {
-        return Email;
-    }
-    public String getPassword()
-    {
-        return password;
     }
 }

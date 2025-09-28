@@ -1,11 +1,14 @@
 package com.EmployeeManager.Application.Repositories;
 
+
+import com.EmployeeManager.Application.Models.AuthUser;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.security.core.userdetails.User;
+
+
 
 import java.util.Optional;
 
-public interface AuthRepository extends JpaRepository<User,Integer> {
+public interface AuthRepository extends JpaRepository<AuthUser,Integer> {
 
-    Optional<User> findByEmail(String email);
+    Optional<AuthUser> findByEmail(String email);
 }

@@ -19,9 +19,9 @@ import org.springframework.stereotype.Service;
 public class AuthenticationService {
 
     private AuthRepository repository;
-    private PasswordEncoder passwordEncoder;
-    private JwtService jwtService;
-    private AuthenticationManager authenticationManager;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
+    private final AuthenticationManager authenticationManager;
 
     //This is where you will find the business logic of the authentication controllers
     public AuthenticationResponse register(RegisterRequest request)
