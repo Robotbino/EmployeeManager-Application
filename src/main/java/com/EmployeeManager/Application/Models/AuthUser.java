@@ -77,8 +77,10 @@ public class AuthUser implements UserDetails {
         return true;
     }
 
+
     @Override
     public boolean isEnabled() {
-        return enabled;  // Use the field
+        return UserDetails.super.isEnabled();
     }
 }
+
