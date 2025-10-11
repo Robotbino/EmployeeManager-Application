@@ -1,9 +1,6 @@
 package com.EmployeeManager.Application.authentication;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Data
 @Builder
@@ -14,16 +11,4 @@ public class RegisterRequest {
     private String lastName;
     private String email;
     private String password;
-
-    public String getfirstName() {
-        return null;
-    }
-
-    public String getLastName() {
-        return this.lastName=lastName;
-    }
-    public String getEmail() {
-        return this.email=email;
-    }
-
 }

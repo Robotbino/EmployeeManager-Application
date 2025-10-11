@@ -1,22 +1,18 @@
 package com.EmployeeManager.Application.authentication;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-@Getter
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class AuthenticationRequest {
 
     private String Email;
     String password;
 
-    public void setEmail(){
-        this.Email=Email;
-    }
-    public void setPassword()
-    {
-        this.password=password;
-    }
+
 }

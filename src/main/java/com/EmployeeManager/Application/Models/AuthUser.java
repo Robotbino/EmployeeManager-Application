@@ -23,19 +23,29 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
+@Table(name = "auth_user")  // Add explicit table name
 public class AuthUser implements UserDetails {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
+
     private String firstName;
     private String lastName;
     private String email;
-    private boolean isEnabled = true;
-    private  String password;
+
+    @Column(nullable = false)
+    private String password;
+
     @Enumerated(EnumType.STRING)
-    //To tell string that the
     private Role role;
+
+    // Remove the isEnabled field OR fix the method
+    // Option 1: Remove the field, keep hardcoded method (simpler)
+    // Option 2: Use the field properly:
+
+    @Column(name = "is_enabled")
+    private boolean enabled = true;  // Rename to 'enabled'
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -69,8 +79,6 @@ public class AuthUser implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return enabled;  // Use the field
     }
-
-
 }

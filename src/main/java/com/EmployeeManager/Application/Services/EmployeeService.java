@@ -15,7 +15,7 @@ import java.util.UUID;
 @Service
 @AllArgsConstructor
 public class EmployeeService {
-    private  employeeRepo employeeRepo;
+    private final employeeRepo employeeRepo;
     private AuthenticationResponse authenticationResponse;
     @Autowired
     public EmployeeService(employeeRepo employeeRepo) {
@@ -24,7 +24,6 @@ public class EmployeeService {
     public Employee addEmployee(Employee employee)
     {
         //This is where we set the Random User ID and convert it to a string
-
         employee.setEmployeeCode(UUID.randomUUID().toString());
         return employeeRepo.save(employee);
     };
