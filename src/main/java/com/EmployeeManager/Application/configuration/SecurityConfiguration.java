@@ -32,6 +32,7 @@ public class SecurityConfiguration {
                         .requestMatchers(POST,"/api/v1/auth/**"
                         )
                         .permitAll()
+                        .requestMatchers("/employee/**").permitAll()
                         .anyRequest()
                         .authenticated()
                 )
