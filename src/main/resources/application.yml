@@ -3,9 +3,9 @@ server:
 
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/employeemanagerapp
+    url: jdbc:mysql://localhost:3306/employeemanager
     username: root
-    password: 37687638
+    password: password
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:

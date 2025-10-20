@@ -2,6 +2,7 @@ package com.EmployeeManager.Application.controllers;
 
 import com.EmployeeManager.Application.Models.Employee;
 import com.EmployeeManager.Application.Services.EmployeeService;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -45,6 +46,7 @@ public class EmployeeController {
         return new ResponseEntity<>(updateEmployee, HttpStatus.OK);
     }
 
+  
     @DeleteMapping("delete/{id}")
     public ResponseEntity<?>deleteEmployee(@PathVariable("id") Long id)
     {

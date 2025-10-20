@@ -26,12 +26,12 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+                .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         //Everything that I have in here are authentication related methods
-                        .requestMatchers(POST,"/api/v1/auth/**"
-                        )
-                        .permitAll()
+                        .requestMatchers("/api/v1/auth/**"
+                        ).permitAll()
                         .requestMatchers("/employee/**").permitAll()
                         .anyRequest()
                         .authenticated()
