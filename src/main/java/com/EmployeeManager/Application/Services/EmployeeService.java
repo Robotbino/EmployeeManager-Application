@@ -15,12 +15,15 @@ import java.util.UUID;
 @Service
 @AllArgsConstructor
 public class EmployeeService {
+
     private final employeeRepo employeeRepo;
     private AuthenticationResponse authenticationResponse;
+
     @Autowired
     public EmployeeService(employeeRepo employeeRepo) {
         this.employeeRepo = employeeRepo;
     }
+
     public Employee addEmployee(Employee employee)
     {
         //This is where we set the Random User ID and convert it to a string
@@ -45,6 +48,7 @@ public class EmployeeService {
         return employeeRepo.findEmployeeById(id)
                 .orElseThrow(() -> new UserNotFoundException("User by id" + id + "was not found"));
     }
+
     //Delete employee records
     @Transactional
     public void deleteEmployee(Long id){
