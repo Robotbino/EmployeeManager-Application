@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Employee Manager — System Architecture &amp; MVP Roadmap</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #F7F9FB;
+    --grid: rgba(32, 86, 199, 0.05);
+    --grid-strong: rgba(32, 86, 199, 0.09);
+    --ink: #16233B;
+    --ink-soft: #51617D;
+    --line: #C6D2E4;
+    --line-strong: #8FA5C4;
+    --accent: #2056C7;
+    --card: #FFFFFF;
+    --card-tint: #EEF3FA;
+    --new: #12734A;   --new-bg: #E2F3EA;   --new-line: #2E9E6B;
+    --mod: #9A5800;   --mod-bg: #FBEFD9;   --mod-line: #C98A1B;
+    --prio: #B3261E;  --prio-bg: #FAE6E4;  --prio-line: #D4645C;
+    --store: #6D28D9; --store-bg: #F0E9FC;
+    --shadow: 0 1px 2px rgba(22, 35, 59, 0.06), 0 6px 20px rgba(22, 35, 59, 0.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #0C1A2E;
+      --grid: rgba(148, 197, 255, 0.055);
+      --grid-strong: rgba(148, 197, 255, 0.10);
+      --ink: #DBE7F6;
+      --ink-soft: #93A7C4;
+      --line: #29456B;
+      --line-strong: #3E608D;
+      --accent: #7FB0FF;
+      --card: #10223B;
+      --card-tint: #16294699;
+      --new: #5BD394;  --new-bg: #14382A;  --new-line: #2E9E6B;
+      --mod: #F5B84D;  --mod-bg: #3A2E14;  --mod-line: #C98A1B;
+      --prio: #FF8A7E; --prio-bg: #401E1B; --prio-line: #C25A52;
+      --store: #C4A5F5; --store-bg: #2A2046;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: "IBM Plex Serif", Georgia, serif;
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--ink);
+    background-color: var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px),
+      linear-gradient(var(--grid-strong) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-strong) 1px, transparent 1px);
+    background-size: 24px 24px, 24px 24px, 120px 120px, 120px 120px;
+  }
+  ::selection { background: var(--accent); color: var(--paper); }
+
+  h1, h2, h3 { font-family: "IBM Plex Sans", system-ui, sans-serif; text-wrap: balance; }
+  .mono { font-family: "IBM Plex Mono", Consolas, monospace; }
+  a { color: var(--accent); }
+  a:focus-visible, button:focus-visible, summary:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px;
+  }
+
+  /* ---------- Nav ---------- */
+  nav {
+    position: sticky; top: 0; z-index: 40;
+    background: color-mix(in srgb, var(--paper) 88%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+  nav .inner {
+    max-width: 1120px; margin: 0 auto; padding: 0 24px;
+    display: flex; align-items: center; gap: 4px;
+    height: 52px; overflow-x: auto;
+  }
+  nav .doc-id {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.7rem; font-weight: 600; letter-spacing: 0.1em;
+    color: var(--accent); margin-right: auto; white-space: nowrap;
+  }
+  nav a.navlink {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.7rem; font-weight: 500; letter-spacing: 0.08em;
+    text-transform: uppercase; text-decoration: none;
+    color: var(--ink-soft); padding: 6px 10px; border-radius: 4px;
+    white-space: nowrap; transition: color 120ms, background 120ms;
+  }
+  nav a.navlink:hover { color: var(--accent); background: var(--card-tint); }
+
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 56px 24px 96px; }
+  section { scroll-margin-top: 72px; }
+
+  /* ---------- Header / title block ---------- */
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.72rem; font-weight: 600;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--accent);
+  }
+  header.doc h1 {
+    font-size: clamp(1.9rem, 4vw, 2.7rem);
+    font-weight: 700; letter-spacing: -0.02em; line-height: 1.15;
+    margin: 10px 0 28px; max-width: 24ch;
+  }
+  .titleblock {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    border: 1.5px solid var(--line-strong);
+    background: var(--card);
+    box-shadow: var(--shadow);
+  }
+  .titleblock .cell {
+    padding: 12px 16px 14px;
+    border-right: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .titleblock .cell dt {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.62rem; font-weight: 600;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--ink-soft); margin-bottom: 3px;
+  }
+  .titleblock .cell dd {
+    font-family: "IBM Plex Sans", sans-serif;
+    font-size: 0.88rem; font-weight: 600; line-height: 1.35;
+  }
+  .titleblock .cell dd.rev { color: var(--new); }
+
+  /* ---------- Section headers ---------- */
+  .sec-head { margin: 72px 0 14px; }
+  .sec-head .kicker {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.7rem; font-weight: 600;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--accent);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .sec-head .kicker::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+  .sec-head h2 { font-size: 1.45rem; font-weight: 700; letter-spacing: -0.01em; margin-top: 6px; }
+  .lede { color: var(--ink-soft); max-width: 68ch; margin-bottom: 22px; }
+  .lede strong { color: var(--ink); }
+  p.body-note { max-width: 68ch; color: var(--ink-soft); font-size: 0.95rem; margin-top: 14px; }
+
+  code {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.84em;
+    background: var(--card-tint);
+    border: 1px solid var(--line);
+    padding: 0 5px; border-radius: 4px;
+  }
+
+  /* ---------- Build sequence bar ---------- */
+  .seq {
+    border: 1.5px solid var(--line-strong);
+    background: var(--card); box-shadow: var(--shadow);
+    padding: 18px 20px 16px; margin-top: 26px;
+  }
+  .seq .seq-label {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.66rem; font-weight: 600;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--ink-soft); margin-bottom: 12px;
+    display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  }
+  .seq .track { display: grid; grid-template-columns: 1.2fr 5fr 10fr 3fr; gap: 4px; }
+  .seq .seg { min-width: 0; }
+  .seq .seg .bar { height: 12px; border-radius: 2px; }
+  .seq .seg.s0 .bar { background: var(--prio); }
+  .seq .seg.s1 .bar { background: var(--accent); }
+  .seq .seg.s2 .bar { background: color-mix(in srgb, var(--accent) 65%, var(--paper)); }
+  .seq .seg.s3 .bar { background: color-mix(in srgb, var(--accent) 40%, var(--paper)); }
+  .seq .seg figcaption {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.64rem; font-weight: 500; letter-spacing: 0.04em;
+    color: var(--ink-soft); margin-top: 7px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------- Drawing sheets ---------- */
+  .sheet {
+    position: relative;
+    border: 1.5px solid var(--line-strong);
+    background: var(--card);
+    box-shadow: var(--shadow);
+    padding: 34px 28px 20px;
+  }
+  .sheet::before {
+    content: ""; position: absolute; inset: 7px;
+    border: 1px solid var(--line);
+    pointer-events: none;
+  }
+  .sheet .diagram { overflow-x: auto; cursor: zoom-in; }
+  .sheet .diagram > svg { display: block; margin: 0 auto; }
+  .sheet .caption {
+    display: flex; justify-content: space-between; align-items: baseline;
+    gap: 16px; flex-wrap: wrap;
+    border-top: 1px solid var(--line);
+    margin-top: 20px; padding: 12px 4px 0;
+  }
+  .sheet .caption .fig {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.68rem; font-weight: 600;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .sheet .caption button.enlarge {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.66rem; font-weight: 600; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--accent);
+    background: none; border: 1px solid var(--line-strong);
+    border-radius: 3px; padding: 4px 12px; cursor: pointer;
+    transition: background 120ms;
+  }
+  .sheet .caption button.enlarge:hover { background: var(--card-tint); }
+
+  .legend {
+    display: flex; gap: 22px; flex-wrap: wrap;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.7rem; letter-spacing: 0.04em;
+    color: var(--ink-soft);
+    margin: 0 2px 14px;
+  }
+  .legend .chip {
+    display: inline-block; width: 13px; height: 13px;
+    border-radius: 3px; margin-right: 7px; vertical-align: -2px;
+    border: 1.5px solid;
+  }
+  .chip.c-exist { background: var(--card-tint); border-color: var(--line-strong); }
+  .chip.c-new   { background: var(--new-bg);   border-color: var(--new-line); }
+  .chip.c-mod   { background: var(--mod-bg);   border-color: var(--mod-line); }
+  .chip.c-prio  { background: var(--prio-bg);  border-color: var(--prio-line); }
+
+  /* ---------- Change orders ---------- */
+  .orders { display: grid; gap: 18px; margin-top: 24px; }
+  .order {
+    border: 1.5px solid var(--line-strong);
+    background: var(--card); box-shadow: var(--shadow);
+    display: grid; grid-template-columns: 92px 1fr;
+    transition: translate 140ms ease, box-shadow 140ms ease;
+  }
+  .order:hover { translate: 0 -2px; }
+  .order .co {
+    border-right: 1px solid var(--line);
+    background: var(--card-tint);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 10px;
+    padding: 18px 8px;
+  }
+  .order .co .num {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.95rem; font-weight: 600; letter-spacing: 0.04em;
+    color: var(--accent);
+    writing-mode: vertical-rl; transform: rotate(180deg);
+  }
+  .order .body { padding: 20px 24px 22px; min-width: 0; }
+  .order .head {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+  .order h3 { font-size: 1.06rem; font-weight: 700; letter-spacing: -0.01em; }
+  .stamp {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.6rem; font-weight: 600;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    border: 1.5px solid; border-radius: 3px;
+    padding: 2px 9px; rotate: -2deg;
+  }
+  .stamp.proposed { color: var(--new); border-color: var(--new-line); background: var(--new-bg); }
+  .stamp.priority { color: var(--prio); border-color: var(--prio-line); background: var(--prio-bg); }
+  .effort {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.66rem; font-weight: 500; letter-spacing: 0.06em;
+    color: var(--ink-soft); margin-left: auto;
+    font-variant-numeric: tabular-nums;
+  }
+  .order p { color: var(--ink-soft); font-size: 0.94rem; max-width: 70ch; }
+  .order p + p { margin-top: 8px; }
+  .order .why {
+    margin-top: 12px; padding: 10px 14px;
+    border-left: 3px solid var(--accent);
+    background: var(--card-tint);
+    font-size: 0.9rem; color: var(--ink);
+  }
+  .order .why b {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.62rem; font-weight: 600;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--accent); display: block; margin-bottom: 2px;
+  }
+
+  /* ---------- Implementation map ---------- */
+  .table-scroll { overflow-x: auto; border: 1.5px solid var(--line-strong); background: var(--card); box-shadow: var(--shadow); }
+  table.map { width: 100%; border-collapse: collapse; font-size: 0.88rem; min-width: 720px; }
+  table.map th, table.map td {
+    text-align: left; padding: 12px 16px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  table.map th {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.64rem; font-weight: 600;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--ink-soft); background: var(--card-tint);
+  }
+  table.map td:first-child {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.78rem; font-weight: 600; color: var(--accent);
+    white-space: nowrap;
+  }
+  table.map tr:last-child td { border-bottom: none; }
+  table.map td { color: var(--ink-soft); }
+  table.map td strong { color: var(--ink); font-family: "IBM Plex Sans", sans-serif; font-size: 0.85rem; }
+
+  /* ---------- Zoom dialog ---------- */
+  dialog.zoom {
+    width: min(96vw, 1400px); max-height: 92vh;
+    border: 1.5px solid var(--line-strong);
+    background: var(--card); color: var(--ink);
+    padding: 0; box-shadow: var(--shadow);
+  }
+  dialog.zoom::backdrop { background: color-mix(in srgb, var(--paper) 55%, black 30%); backdrop-filter: blur(3px); }
+  dialog.zoom .zoom-head {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 16px; border-bottom: 1px solid var(--line);
+  }
+  dialog.zoom .zoom-head span {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.68rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  dialog.zoom .zoom-head button {
+    font-family: "IBM Plex Mono", monospace; font-size: 0.7rem; font-weight: 600;
+    color: var(--ink); background: var(--card-tint);
+    border: 1px solid var(--line-strong); border-radius: 3px;
+    padding: 4px 12px; cursor: pointer;
+  }
+  dialog.zoom .zoom-body { padding: 20px; overflow: auto; max-height: calc(92vh - 50px); }
+  dialog.zoom .zoom-body svg { width: 100%; height: auto; }
+
+  footer {
+    margin-top: 88px; padding-top: 18px;
+    border-top: 1px solid var(--line);
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.68rem; letter-spacing: 0.05em;
+    color: var(--ink-soft);
+    display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  }
+
+  .loading-note {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.75rem; color: var(--ink-soft);
+    padding: 48px 0; text-align: center;
+  }
+
+  @media (max-width: 640px) {
+    .order { grid-template-columns: 1fr; }
+    .order .co { flex-direction: row; border-right: none; border-bottom: 1px solid var(--line); padding: 10px 16px; }
+    .order .co .num { writing-mode: horizontal-tb; transform: none; }
+    .seq .track { grid-template-columns: 1fr; gap: 10px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    * { transition: none !important; }
+  }
+  @media print {
+    nav { display: none; }
+    body { background: #fff; }
+    .sheet, .order, .titleblock, .seq, .table-scroll { box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="inner">
+    <span class="doc-id">EMP&#8209;ARCH&#8209;001&ensp;REV&nbsp;B</span>
+    <a class="navlink" href="#scope">Scope</a>
+    <a class="navlink" href="#sheet-a">Sheet A</a>
+    <a class="navlink" href="#orders">Change Orders</a>
+    <a class="navlink" href="#sheet-b">Sheet B</a>
+    <a class="navlink" href="#map">Impl. Map</a>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <header class="doc">
+    <span class="eyebrow">Engineering Design Document · EMP-ARCH-001</span>
+    <h1>Employee Manager — System Architecture &amp; MVP Roadmap</h1>
+    <dl class="titleblock">
+      <div class="cell"><dt>Project</dt><dd>Employee Manager</dd></div>
+      <div class="cell"><dt>Frontend</dt><dd>Angular SPA · Lucide</dd></div>
+      <div class="cell"><dt>Backend</dt><dd>Spring Boot 3 · Security 6</dd></div>
+      <div class="cell"><dt>Persistence</dt><dd>MySQL 8 · JPA / Hibernate</dd></div>
+      <div class="cell"><dt>Auth</dt><dd>JWT · stateless sessions</dd></div>
+      <div class="cell"><dt>Revision</dt><dd class="rev">B — proposed extension</dd></div>
+    </dl>
+  </header>
+
+  <!-- ============ SCOPE ============ -->
+  <section id="scope">
+    <div class="sec-head">
+      <span class="kicker">§ 1 · Scope of Work</span>
+      <h2>Four scoped changes, two developer days</h2>
+    </div>
+    <p class="lede">
+      The system is a working full-stack platform: an Angular SPA with modal-driven CRUD and
+      client-side search, a Spring Boot REST API secured by a JWT filter chain, and a MySQL
+      store behind Spring Data JPA. This revision proposes <strong>one hardening fix and three
+      product features</strong> — chosen for maximum reviewer impact per hour, and deliberately
+      scoped to leave the rest of the codebase untouched.
+    </p>
+    <div class="seq">
+      <div class="seq-label">
+        <span>Build sequence — proportional effort</span>
+        <span>total ≈ 2 dev days</span>
+      </div>
+      <div class="track">
+        <figure class="seg s0"><div class="bar"></div><figcaption>CO-00 · 15 min</figcaption></figure>
+        <figure class="seg s1"><div class="bar"></div><figcaption>CO-01 · 0.5 day</figcaption></figure>
+        <figure class="seg s2"><div class="bar"></div><figcaption>CO-02 · 1 day</figcaption></figure>
+        <figure class="seg s3"><div class="bar"></div><figcaption>CO-03 · 2–3 hrs</figcaption></figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SHEET A ============ -->
+  <section id="sheet-a">
+    <div class="sec-head">
+      <span class="kicker">§ 2 · Sheet A — Current State</span>
+      <h2>As built</h2>
+    </div>
+    <p class="lede">
+      Every request from the SPA passes through the <code>AuthInterceptor</code>, which attaches
+      the JWT Bearer token and force-logs-out on 401/403. On the server, the
+      <code>JwtAuthenticationFilter</code> validates tokens before requests reach the controllers —
+      but note the amber node: <code>/employee/**</code> is currently <code>permitAll</code>,
+      so the token is never actually required for the data it should protect.
+    </p>
+    <div class="legend">
+      <span><span class="chip c-exist"></span>existing</span>
+      <span><span class="chip c-mod"></span>defect — see CO-00</span>
+    </div>
+    <div class="sheet">
+      <div class="diagram" id="diagram-a" data-fig="Fig. A — Request flow, as built">
+        <div class="loading-note">Rendering Fig. A… (requires internet connection for Mermaid.js)</div>
+      </div>
+      <div class="caption">
+        <span class="fig">Fig. A — Request flow · as built · verified against source</span>
+        <button class="enlarge" data-target="diagram-a">Enlarge ⤢</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CHANGE ORDERS ============ -->
+  <section id="orders">
+    <div class="sec-head">
+      <span class="kicker">§ 3 · Change Orders</span>
+      <h2>Proposed changes, in build order</h2>
+    </div>
+    <p class="lede">
+      Numbered in dependency order: the security fix ships first because every later feature
+      inherits it; error handling ships second because pagination and export reuse its
+      error contract.
+    </p>
+
+    <div class="orders">
+
+      <article class="order">
+        <div class="co"><span class="num">CO-00</span></div>
+        <div class="body">
+          <div class="head">
+            <h3>Enforce authentication on the employee API</h3>
+            <span class="stamp priority">Priority</span>
+            <span class="effort">EFFORT · 15 MIN</span>
+          </div>
+          <p>
+            <code>SecurityConfiguration</code> currently declares
+            <code>/employee/** → permitAll()</code>, which leaves the entire JWT stack —
+            filter, token service, interceptor — decorative. Change the matcher to
+            <code>authenticated()</code>. No frontend work: the interceptor already attaches
+            the token to every employee request.
+          </p>
+          <div class="why"><b>Reviewer signal</b>
+            The first file a technical reviewer opens is the security config. This one line is
+            the difference between “implemented JWT auth” and “pasted JWT boilerplate.”
+          </div>
+        </div>
+      </article>
+
+      <article class="order">
+        <div class="co"><span class="num">CO-01</span></div>
+        <div class="body">
+          <div class="head">
+            <h3>Global error contract + toast notifications</h3>
+            <span class="stamp proposed">Proposed</span>
+            <span class="effort">EFFORT · 0.5 DAY</span>
+          </div>
+          <p>
+            Backend: one <code>@RestControllerAdvice</code> returning a structured
+            <code>ApiError&nbsp;{ timestamp, status, message, path }</code>, mapping
+            <code>UserNotFoundException → 404</code> and everything else to a clean 500.
+            Frontend: an injectable <code>ToastService</code> plus one toast component,
+            replacing all six <code>alert()</code> calls in the home component.
+          </p>
+          <div class="why"><b>Reviewer signal</b>
+            Demonstrates a designed error contract between tiers — a production concern, not a
+            tutorial one. Browser <code>alert()</code> is the loudest “tutorial project” tell
+            there is; this removes every instance.
+          </div>
+        </div>
+      </article>
+
+      <article class="order">
+        <div class="co"><span class="num">CO-02</span></div>
+        <div class="body">
+          <div class="head">
+            <h3>Server-side pagination + search</h3>
+            <span class="stamp proposed">Proposed</span>
+            <span class="effort">EFFORT · 1 DAY</span>
+          </div>
+          <p>
+            Replace <code>GET /employee/all</code> with
+            <code>GET /employee?page=0&amp;size=8&amp;q=term</code> returning
+            <code>Page&lt;Employee&gt;</code>. Spring Data makes this nearly free —
+            <code>JpaRepository</code> already pages; one derived query
+            (<code>findByNameContainingIgnoreCase…</code>) covers search. The Angular service
+            passes the params; the existing search box wires to the server; simple prev/next
+            controls complete it.
+          </p>
+          <p>
+            Also retires a live bug: the current client-side search silently refetches the full
+            list whenever a query has no matches.
+          </p>
+          <div class="why"><b>Reviewer signal</b>
+            “Does this scale past 50 rows?” is a classic interview probe. Server-side paging is
+            the canonical proof of thinking beyond the demo dataset — and a ready-made talking
+            point on <code>Pageable</code> and derived queries.
+          </div>
+        </div>
+      </article>
+
+      <article class="order">
+        <div class="co"><span class="num">CO-03</span></div>
+        <div class="body">
+          <div class="head">
+            <h3>CSV export</h3>
+            <span class="stamp proposed">Proposed</span>
+            <span class="effort">EFFORT · 2–3 HRS</span>
+          </div>
+          <p>
+            One endpoint — <code>GET /employee/export</code> — streaming <code>text/csv</code>
+            with a <code>Content-Disposition: attachment</code> header; a plain
+            <code>PrintWriter</code> suffices, no library. One “Export CSV” button on the
+            frontend downloads the blob; the interceptor attaches the JWT automatically.
+          </p>
+          <div class="why"><b>Reviewer signal</b>
+            A business feature rather than a CRUD verb — it reads as product thinking. Also the
+            best live-demo moment of the three: click, file lands, done.
+          </div>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ============ SHEET B ============ -->
+  <section id="sheet-b">
+    <div class="sec-head">
+      <span class="kicker">§ 4 · Sheet B — Extended State</span>
+      <h2>With change orders applied</h2>
+    </div>
+    <p class="lede">
+      The four changes slot into the existing request path without moving any structural walls:
+      the exception advice wraps the controllers it already fronts, pagination rides the
+      repository layer that already exists, and the CSV service is a leaf node. Green components
+      are new; amber components are modified in place.
+    </p>
+    <div class="legend">
+      <span><span class="chip c-exist"></span>existing · unchanged</span>
+      <span><span class="chip c-new"></span>new component</span>
+      <span><span class="chip c-mod"></span>modified in place</span>
+    </div>
+    <div class="sheet">
+      <div class="diagram" id="diagram-b" data-fig="Fig. B — Request flow, extended state">
+        <div class="loading-note">Rendering Fig. B… (requires internet connection for Mermaid.js)</div>
+      </div>
+      <div class="caption">
+        <span class="fig">Fig. B — Request flow · proposed · CO-00 → CO-03 applied</span>
+        <button class="enlarge" data-target="diagram-b">Enlarge ⤢</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ IMPLEMENTATION MAP ============ -->
+  <section id="map">
+    <div class="sec-head">
+      <span class="kicker">§ 5 · Implementation Map</span>
+      <h2>Exactly which files each change touches</h2>
+    </div>
+    <p class="lede">
+      Scoped deliberately small to protect the timeline — no schema migrations, no new modules,
+      no framework upgrades.
+    </p>
+    <div class="table-scroll">
+      <table class="map">
+        <thead>
+          <tr><th>Order</th><th>Backend</th><th>Frontend</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>CO-00</td>
+            <td><strong>SecurityConfiguration.java</strong> — change <code>/employee/**</code> from <code>permitAll()</code> to <code>authenticated()</code></td>
+            <td>None — <code>AuthInterceptor</code> already attaches the token</td>
+          </tr>
+          <tr>
+            <td>CO-01</td>
+            <td><strong>GlobalExceptionHandler.java</strong> (new) — <code>@RestControllerAdvice</code> + <code>ApiError</code> record; maps <code>UserNotFoundException</code> → 404</td>
+            <td><strong>toast.service.ts</strong> + <strong>toast.component</strong> (new); replace six <code>alert()</code> calls in <code>home-component.component.ts</code></td>
+          </tr>
+          <tr>
+            <td>CO-02</td>
+            <td><strong>EmployeeController / EmployeeService</strong> — accept <code>Pageable</code> + <code>q</code>, return <code>Page&lt;Employee&gt;</code>; one derived query in <strong>employeeRepo</strong></td>
+            <td><strong>employee.service.ts</strong> — <code>getEmployees(page, size, q)</code>; wire search box to server; prev/next controls in home component</td>
+          </tr>
+          <tr>
+            <td>CO-03</td>
+            <td><strong>CsvExportService.java</strong> (new) + <code>GET /employee/export</code> endpoint with <code>Content-Disposition: attachment</code></td>
+            <td>One “Export CSV” button; blob download through existing <code>HttpClient</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    <span>EMP-ARCH-001 · REV B · 2026-07-15</span>
+    <span>Set in IBM Plex · Diagrams: Mermaid.js v11 (CDN — internet required)</span>
+  </footer>
+</div>
+
+<dialog class="zoom" id="zoomDialog">
+  <div class="zoom-head">
+    <span id="zoomTitle">Figure</span>
+    <button id="zoomClose" type="button">Close ✕</button>
+  </div>
+  <div class="zoom-body" id="zoomBody"></div>
+</dialog>
+
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+
+  const dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+  const P = dark ? {
+    nodeBg: "#16294A",   nodeLine: "#3E608D", nodeText: "#DBE7F6",
+    newBg:  "#14382A",   newLine:  "#2E9E6B", newText:  "#B9EBD1",
+    modBg:  "#3A2E14",   modLine:  "#C98A1B", modText:  "#F5DFAE",
+    storeBg:"#2A2046",   storeLine:"#8B6BD9", storeText:"#E3D7FA",
+    line:   "#5E7BA6",   clusterBg:"#0E1F38", clusterLine:"#29456B",
+    edgeLabelBg: "#10223B", text: "#DBE7F6"
+  } : {
+    nodeBg: "#EEF3FA",   nodeLine: "#8FA5C4", nodeText: "#16233B",
+    newBg:  "#E2F3EA",   newLine:  "#2E9E6B", newText:  "#0B4A2F",
+    modBg:  "#FBEFD9",   modLine:  "#C98A1B", modText:  "#6B3D00",
+    storeBg:"#F0E9FC",   storeLine:"#8B6BD9", storeText:"#3B1E77",
+    line:   "#51617D",   clusterBg:"#F9FBFE", clusterLine:"#C6D2E4",
+    edgeLabelBg: "#FFFFFF", text: "#16233B"
+  };
+
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: "base",
+    securityLevel: "loose",
+    themeVariables: {
+      fontFamily: "'IBM Plex Sans', system-ui, sans-serif",
+      fontSize: "13.5px",
+      primaryColor: P.nodeBg,
+      primaryTextColor: P.nodeText,
+      primaryBorderColor: P.nodeLine,
+      lineColor: P.line,
+      textColor: P.text,
+      clusterBkg: P.clusterBg,
+      clusterBorder: P.clusterLine,
+      titleColor: P.text,
+      edgeLabelBackground: P.edgeLabelBg
+    },
+    flowchart: { curve: "linear", htmlLabels: true, padding: 10 }
+  });
+
+  const classDefs = `
+    classDef existing fill:${P.nodeBg},stroke:${P.nodeLine},stroke-width:1.2px,color:${P.nodeText}
+    classDef newc fill:${P.newBg},stroke:${P.newLine},stroke-width:1.6px,color:${P.newText}
+    classDef modc fill:${P.modBg},stroke:${P.modLine},stroke-width:1.6px,color:${P.modText}
+    classDef store fill:${P.storeBg},stroke:${P.storeLine},stroke-width:1.2px,color:${P.storeText}
+  `;
+
+  const diagramA = `flowchart LR
+    ${classDefs}
+    subgraph FE ["ANGULAR SPA · localhost:4200"]
+      direction TB
+      CMP["Components<br/>Home · Login · Register · MainLayout<br/>CRUD modals + client-side search"]:::existing
+      GUARD["AuthGuard"]:::existing
+      ESVC["EmployeeService"]:::existing
+      ASVC["AuthService<br/>token storage"]:::existing
+      INT["AuthInterceptor<br/>attaches Bearer JWT · 401/403 → logout"]:::existing
+      GUARD -. "protects routes" .- CMP
+      CMP --> ESVC
+      CMP --> ASVC
+      ESVC --> INT
+      ASVC --> INT
+    end
+    subgraph BE ["SPRING BOOT API · localhost:8181"]
+      direction TB
+      SEC["SecurityFilterChain + JwtAuthenticationFilter<br/>⚠ /employee/** currently permitAll"]:::modc
+      EC["EmployeeController<br/>/employee/all · find · add · update · delete"]:::existing
+      AC["AuthenticationController<br/>/api/v1/auth/register · login"]:::existing
+      ES["EmployeeService"]:::existing
+      AS["AuthenticationService + JwtService"]:::existing
+      ER["employeeRepo<br/>Spring Data JPA"]:::existing
+      AR["AuthRepository<br/>Spring Data JPA"]:::existing
+      SEC --> EC
+      SEC --> AC
+      EC --> ES
+      ES --> ER
+      AC --> AS
+      AS --> AR
+    end
+    DB[("MySQL · employeemanager<br/>employee · users")]:::store
+    INT == "HTTP · JSON" ==> SEC
+    ER --> DB
+    AR --> DB
+  `;
+
+  const diagramB = `flowchart LR
+    ${classDefs}
+    subgraph FE ["ANGULAR SPA · localhost:4200"]
+      direction TB
+      CMP["Home Component<br/>+ pagination controls<br/>+ Export CSV button"]:::modc
+      TOAST["ToastService + Toast Component<br/>replaces all alert() calls"]:::newc
+      ESVC["EmployeeService<br/>getEmployees(page, size, q) · exportCsv()"]:::modc
+      ASVC["AuthService"]:::existing
+      INT["AuthInterceptor<br/>unchanged — token rides along<br/>on paged + export requests"]:::existing
+      CMP --> ESVC
+      CMP --> TOAST
+      ESVC --> INT
+      ASVC --> INT
+    end
+    subgraph BE ["SPRING BOOT API · localhost:8181"]
+      direction TB
+      SEC["SecurityFilterChain<br/>✔ /employee/** now authenticated"]:::modc
+      EC["EmployeeController<br/>GET /employee?page&amp;size&amp;q → Page&lt;Employee&gt;<br/>GET /employee/export → text/csv"]:::modc
+      ADVICE["GlobalExceptionHandler<br/>@RestControllerAdvice<br/>ApiError { timestamp, status, message, path }"]:::newc
+      ES["EmployeeService<br/>+ findEmployees(Pageable, q)"]:::modc
+      CSV["CsvExportService<br/>streams employee rows"]:::newc
+      AS["AuthenticationService + JwtService"]:::existing
+      ER["employeeRepo<br/>+ findByNameContainingIgnoreCase…(q, Pageable)"]:::modc
+      AR["AuthRepository"]:::existing
+      SEC --> EC
+      EC --> ES
+      ES --> ER
+      EC --> CSV
+      CSV --> ER
+      ADVICE -. "wraps all controllers ·<br/>structured JSON errors" .- EC
+      AS --> AR
+    end
+    DB[("MySQL · employeemanager<br/>employee · users")]:::store
+    INT == "HTTP · JSON" ==> SEC
+    ADVICE -. "error JSON surfaces as toast" .-> TOAST
+    ER --> DB
+    AR --> DB
+  `;
+
+  async function draw(id, def) {
+    const host = document.getElementById(id);
+    try {
+      const { svg } = await mermaid.render(id + "-svg", def);
+      host.innerHTML = svg;
+    } catch (e) {
+      host.innerHTML = '<div class="loading-note">Diagram failed to render: ' + e.message + "</div>";
+    }
+  }
+  await draw("diagram-a", diagramA);
+  await draw("diagram-b", diagramB);
+
+  // ---- Enlarge dialog ----
+  const dlg = document.getElementById("zoomDialog");
+  const body = document.getElementById("zoomBody");
+  const title = document.getElementById("zoomTitle");
+  function openZoom(id) {
+    const host = document.getElementById(id);
+    const svg = host.querySelector("svg");
+    if (!svg) return;
+    body.innerHTML = "";
+    const clone = svg.cloneNode(true);
+    clone.style.maxWidth = "none";
+    body.appendChild(clone);
+    title.textContent = host.dataset.fig || "Figure";
+    dlg.showModal();
+  }
+  document.querySelectorAll("button.enlarge").forEach(b =>
+    b.addEventListener("click", () => openZoom(b.dataset.target)));
+  document.querySelectorAll(".diagram").forEach(d =>
+    d.addEventListener("click", () => openZoom(d.id)));
+  document.getElementById("zoomClose").addEventListener("click", () => dlg.close());
+  dlg.addEventListener("click", e => { if (e.target === dlg) dlg.close(); });
+</script>
+</body>
+</html>
